@@ -11,22 +11,20 @@ class GpyModel():
     optimizer = "lbfgsb"
     opt_max_iters = 1e5
 
-    def __init__(self, n_var=0, bounds=None):
+    def __init__(self, input_dim):
         self.gp = None
-        if n_var < 1:
-            raise ValueError("Number of variables needs to be larger than 1")
-        self.n_var = n_var
-        self.bounds = bounds or [(0,1)] * self.n_var
-        if len(bounds) != self.n_var:
+        self.input_dim = input_dim
+
+        if len(bounds) != self.input_dim:
             raise ValueError("Number of variables needs to equal the number of bounds")
 
 
     def evaluate(self, x):
-        """ Returns the mean, variance and std of the GP at x as floats """
+        """ Returns the mean, variance of the GP at x as floats """
         if self.gp is None:
             return 0.0, 0.0, 0.0
-        y_m, y_s2 = self.gp.predict(np.atleast_2d(x))
-        return float(y_m), float(y_s2), np.sqrt(float(y_s2))
+        m, s2 = self.gp.predict(np.atleast_2d(x))
+        return m, s2
 
     def eval_mean(self, x):
         m, s2, s = self.evaluate(x)
@@ -35,19 +33,19 @@ class GpyModel():
     def _get_kernel(self):
         """ Internal function to generate kernel for GPy model """
         if self.gp_kernel_type == "exponential":
-            return GPy.kern.Exponential(input_dim=self.n_var,
+            return GPy.kern.Exponential(input_dim=self.input_dim,
                                         variance=self.gp_kernel_var,
                                         lengthscale=self.gp_kernel_scale)
         elif self.gp_kernel_type == "expquad":
-            return GPy.kern.ExpQuad(input_dim=self.n_var,
+            return GPy.kern.ExpQuad(input_dim=self.input_dim,
                                     variance=self.gp_kernel_var,
                                     lengthscale=self.gp_kernel_scale)
         elif self.gp_kernel_type == "matern32":
-            return GPy.kern.Matern32(input_dim=self.n_var,
+            return GPy.kern.Matern32(input_dim=self.input_dim,
                                      variance=self.gp_kernel_var,
                                      lengthscale=self.gp_kernel_scale)
         elif self.gp_kernel_type == "matern52":
-            return GPy.kern.Matern52(input_dim=self.n_var,
+            return GPy.kern.Matern52(input_dim=self.input_dim,
                                      variance=self.gp_kernel_var,
                                      lengthscale=self.gp_kernel_scale)
         else:
@@ -62,8 +60,8 @@ class GpyModel():
             raise ValueError("Observation arrays X and Y must be 2d numpy arrays (X type=%s, Y type=%s)" % (type(X), type(Y)))
         if X.shape[0] != Y.shape[0]:
             raise ValueError("Observation arrays X and Y must be of equal length (X len=%d, Y len=%d)" % (X.shape[0], Y.shape[0]))
-        if X.shape[1] != self.n_var or Y.shape[1] != 1:
-            raise ValueError("Dimension of X (%d) must agree with model dimension (%d), dimension of Y (%d) must be 1." % (X.shape[1], self.n_var, Y.shape[1]))
+        if X.shape[1] != self.input_dim or Y.shape[1] != 1:
+            raise ValueError("Dimension of X (%d) must agree with model dimension (%d), dimension of Y (%d) must be 1." % (X.shape[1], self.input_dim, Y.shape[1]))
         print("Observed: %s at %s" % (X, Y))
         if self.gp is None:
             self.gp = GPy.models.GPRegression(X=X,

@@ -2,8 +2,8 @@ import numpy as np
 import dask
 from distributed import Client
 
-from abcpy.gp.acquisition import BolfiAcquisition, AsyncBolfiAcquisition
-from abcpy.gp.gpy_model import GpyModel
+from abcpy.gp.acquisition import BolfiAcquisition
+from abcpy.gp.gpy_model import GPyModel
 from .async import wait
 
 
@@ -45,22 +45,10 @@ class Rejection(ABCMethod):
 
 class BOLFI(ABCMethod):
 
-    def __init__(self, N, distance_node=None, parameter_nodes=None, batch_size=10, model=None, acquisition=None, bounds=None):
-        self.n_dimensions = len(parameter_nodes)
-        self.model = model or GpyModel(self.n_dimensions, bounds)
-        self.sync = sync
-        if acquisition is not None:
-            self.acquisition = acquisition
-            self.sync = self.acquisition.sync
-        elif sync is True:
-            self.acquisition = BolfiAcquisition(self.model)
-        else:
-            self.acquisition = AsyncBolfiAcquisition(self.model, batch_size)
-        if self.sync is True:
-            self.sync_condition = "all"
-        else:
-            self.sync_condition = "any"
-        self.n_surrogate_samples = n_surrogate_samples
+    def __init__(self, N, distance_node=None, parameter_nodes=None, batch_size=2, model=None, acquisition=None, n_surrogate_samples=None):
+        self.model = model or GPyModel(len(parameter_nodes))
+        self.acquisition = acquisition or BolfiAcquisition(self.model)
+        self.n_surrogate_samples = n_surrogate_samples or 20
         super(BOLFI, self).__init__(N, distance_node, parameter_nodes, batch_size)
 
     def infer(self, threshold=None, *args, **kwargs):
@@ -69,36 +57,20 @@ class BOLFI(ABCMethod):
 
             type(threshold) = float
         """
-        self.createSurrogate()
-        return self.samplePosterior(threshold)
+        self.create_surrogate_likelihood()
+        return self.sample_posterior(threshold)
 
-    def createSurrogate(self):
-        print("Sampling %d samples in batches of %d" % (self.n_surrogate_samples, self.batch_size))
-        all_values = None
-        all_locations = None
-        n_pending = 0
-        client = Client()
-        pending_indexes = list()
-        ready_indexes = list()
-        next_index = 0
-        dask.set_options(get=client.get)
-        while self.model.n_observations() < self.n_surrogate_samples:
-            pending_locations = all_values[pending_indexes] if all_values is not None and len(pending_indexes) > 0 else None
-            new_locations = self.acquisition.acquire(self.batch_size, pending_locations)
-            new_values_dict = {param.name: np.atleast_2d(new_locations[:,i]).T for i, param in enumerate(self.parameter_nodes)}
-            new_values = self.distance_node.generate(len(new_locations), with_values=new_values_dict)
-            all_locations = np.vstack((all_locations, new_locations)) if all_locations is not None else new_locations
-            all_values = all_values + new_values if all_values is not None else new_values
-            if pending_locations is not None:
-                pending_indexes = pending_indexes.extend(range(next_index, next_index + len(pending_locations)))
-                next_index += max(max(pending_locations) + 1, next_index)
-            new_ready_index = wait(list(all_values), client)  # TODO: add condition when wait() supports
-            pending_indexes.remove(new_ready_index)
-            ready_indexes.append(new_ready_index)
-            self.model.update(np.atleast_2d(all_locations[new_ready_index]), np.atleast_2d(all_values[new_ready_index]))
+    def create_surrogate_likelihood(self, n_surrogate_samples=None):
+        n_surrogate_samples = n_surrogate_samples or self.n_surrogate_samples
+        while self.model.n_observations() < n_surrogate_samples:
+            x = self.acquisition.acquire(self.batch_size)
+            param_values = {p.name: x[:,i,None] for i, p in enumerate(self.parameter_nodes)}
+            y = self.distance_node.generate(len(x), with_values=param_values).compute()
+            self.model.update(x, y)
+        return self.model
 
     def getPosterior(self, threshold):
-        return None
+        raise NotImplementedError()
 
-    def samplePosterior(self, threshold):
-        return None
+    def sample_posterior(self, threshold):
+        raise NotImplementedError()

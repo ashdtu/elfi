@@ -8,12 +8,12 @@ from .async import wait
 
 
 class ABCMethod(object):
-    def __init__(self, n_samples, distance_node=None, parameter_nodes=None, batch_size=10):
+    def __init__(self, N, distance_node=None, parameter_nodes=None, batch_size=10):
 
         if not distance_node or not parameter_nodes:
             raise ValueError("Need to give the distance node and list of parameter nodes")
 
-        self.n_samples = n_samples
+        self.N = N
         self.distance_node = distance_node
         self.parameter_nodes = parameter_nodes
         self.batch_size = batch_size
@@ -34,9 +34,8 @@ class Rejection(ABCMethod):
 
         # only run at first call
         if not hasattr(self, 'distances'):
-            self.distances = self.distance_node.generate(self.n_samples, batch_size=self.batch_size).compute()
-            self.parameters = [p.generate(self.n_samples, starting=0).compute()
-                               for p in self.parameter_nodes]
+            self.distances = self.distance_node.generate(self.N, batch_size=self.batch_size).compute()
+            self.parameters = [p.acquire(self.N).compute() for p in self.parameter_nodes]
 
         accepted = self.distances < threshold
         posteriors = [p[accepted] for p in self.parameters]
@@ -46,7 +45,7 @@ class Rejection(ABCMethod):
 
 class BOLFI(ABCMethod):
 
-    def __init__(self, n_samples, distance_node=None, parameter_nodes=None, batch_size=10, sync=True, model=None, acquisition=None, bounds=None, n_surrogate_samples=10):
+    def __init__(self, N, distance_node=None, parameter_nodes=None, batch_size=10, sync=True, model=None, acquisition=None, bounds=None, n_surrogate_samples=10):
         self.n_dimensions = len(parameter_nodes)
         self.model = model or GpyModel(self.n_dimensions, bounds)
         self.sync = sync
@@ -62,7 +61,7 @@ class BOLFI(ABCMethod):
         else:
             self.sync_condition = "any"
         self.n_surrogate_samples = n_surrogate_samples
-        super(BOLFI, self).__init__(n_samples, distance_node, parameter_nodes, batch_size)
+        super(BOLFI, self).__init__(N, distance_node, parameter_nodes, batch_size)
 
     def infer(self, threshold=None, *args, **kwargs):
         """

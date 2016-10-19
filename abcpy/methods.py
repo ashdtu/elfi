@@ -1,17 +1,10 @@
 import numpy as np
-from time import sleep
 import dask
 from distributed import Client
 
-from .gpy_model import GpyModel
-from .acquisition import LcbAcquisition, SecondDerivativeNoiseMixin, RbfAtPendingPointsMixin
-from .utils import stochastic_optimization
+from abcpy.gp.acquisition import BolfiAcquisition, AsyncBolfiAcquisition
+from abcpy.gp.gpy_model import GpyModel
 from .async import wait
-
-"""
-These are sketches of how to use the ABC graphical model in the algorithms
-"""
-import numpy as np
 
 
 class ABCMethod(object):
@@ -25,7 +18,7 @@ class ABCMethod(object):
         self.parameter_nodes = parameter_nodes
         self.batch_size = batch_size
 
-    def infer(self, spec, *args, **kwargs):
+    def infer(self, threshold, *args, **kwargs):
         raise NotImplementedError
 
 
@@ -33,7 +26,7 @@ class Rejection(ABCMethod):
     """
     Rejection sampler.
     """
-    def infer(self, threshold):
+    def infer(self, threshold, *args, **kwargs):
         """
         Run the rejection sampler. Inference can be repeated with a different
         threshold without rerunning the simulator.
@@ -49,14 +42,6 @@ class Rejection(ABCMethod):
         posteriors = [p[accepted] for p in self.parameters]
 
         return posteriors
-
-
-class BolfiAcquisition(SecondDerivativeNoiseMixin, LcbAcquisition):
-    pass
-
-
-class AsyncBolfiAcquisition(SecondDerivativeNoiseMixin, RbfAtPendingPointsMixin, LcbAcquisition):
-    pass
 
 
 class BOLFI(ABCMethod):
@@ -79,7 +64,7 @@ class BOLFI(ABCMethod):
         self.n_surrogate_samples = n_surrogate_samples
         super(BOLFI, self).__init__(n_samples, distance_node, parameter_nodes, batch_size)
 
-    def infer(self, threshold=None):
+    def infer(self, threshold=None, *args, **kwargs):
         """
             Bolfi inference.
 
@@ -118,44 +103,3 @@ class BOLFI(ABCMethod):
 
     def samplePosterior(self, threshold):
         return None
-
-# class SyntheticLikelihood(ABCMethod):
-#
-#     def create_objective(self, model, parameters=None, summaries=None, **kwargs):
-#         """
-#
-#         Parameters
-#         ----------
-#         model
-#         parameter
-#            array of nodes
-#         summaries
-#            array of nodes
-#         kwargs
-#
-#         Returns
-#         -------
-#
-#         """
-#
-#         parameter_values = []
-#
-#         for p in parameters:
-#             values = Values()
-#             values.replace(p, parents=False)
-#             parameter_values.append(values)
-#
-#         def objective(params):
-#             S = np.zeros([self.n_samples, len(summaries)])
-#             y = np.zeros([1, len(summaries)])
-#             for i, s in enumerate(summaries):
-#                 parameter_values[i].values[0:self.n_samples] = params[i]
-#                 S[:, i] = s.generate(self.n_samples)
-#                 y[i] = s.observed
-#             cov = np.cov(S, rowvar=False)
-#             mean = np.mean(S, axis=0)
-#
-#             lik = stats.multivariate_normal.pdf(y, mean, cov)
-#             return lik
-#
-#         return objective

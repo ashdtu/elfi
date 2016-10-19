@@ -3,7 +3,7 @@ import json
 
 from scipy.stats import truncnorm
 
-from .utils import stochastic_optimization, approx_second_partial_derivative, sum_of_rbf_kernels
+from abcpy.utils import stochastic_optimization, approx_second_partial_derivative, sum_of_rbf_kernels
 
 class AcquisitionBase():
     """ All acquisition functions are assumed to fulfill this interface """
@@ -120,4 +120,9 @@ class SecondDerivativeNoiseMixin(AcquisitionBase):
         return np.atleast_2d(locs)
 
 
+class BolfiAcquisition(SecondDerivativeNoiseMixin, LcbAcquisition):
+    pass
 
+
+class AsyncBolfiAcquisition(SecondDerivativeNoiseMixin, RbfAtPendingPointsMixin, LcbAcquisition):
+    pass

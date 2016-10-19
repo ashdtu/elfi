@@ -10,6 +10,9 @@ class AcquisitionBase():
     def __init__(self, model, bounds=None):
         self.model = model
         self.bounds = bounds or [(0,1)] * model.input_dim
+        if len(bounds) != self.model.input_dim:
+            raise ValueError("Bounds dimensionality doesn't match with the model.input_dim")
+
 
     def _eval(self, x):
         """

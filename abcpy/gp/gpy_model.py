@@ -1,23 +1,22 @@
 import numpy as np
 import GPy
 
-class GpyModel():
 
-    gp_kernel_type = "exponential"
-    gp_kernel_var = 1.0
-    gp_kernel_scale = 1.0
-    gp_noise_var = 1.0
+class GPyModel:
+
+    # Defaults
+    kernel_class = GPy.kern.RBF
+    kernel_var = 1.0
+    kernel_lengthscale = 1.0
+    noise_var = 1.0
     # optimizers: lbfgsb, simplex, scg, adadelta, rasmussen
     optimizer = "lbfgsb"
-    opt_max_iters = 1e5
+    opt_max_iters = int(1e5)
 
-    def __init__(self, input_dim):
-        self.gp = None
+    def __init__(self, input_dim, kernel=None):
         self.input_dim = input_dim
-
-        if len(bounds) != self.input_dim:
-            raise ValueError("Number of variables needs to equal the number of bounds")
-
+        self.kernel = kernel or self._get_kernel()
+        self.gp = None
 
     def evaluate(self, x):
         """ Returns the mean, variance of the GP at x as floats """
@@ -31,43 +30,26 @@ class GpyModel():
         return m
 
     def _get_kernel(self):
-        """ Internal function to generate kernel for GPy model """
-        if self.gp_kernel_type == "exponential":
-            return GPy.kern.Exponential(input_dim=self.input_dim,
-                                        variance=self.gp_kernel_var,
-                                        lengthscale=self.gp_kernel_scale)
-        elif self.gp_kernel_type == "expquad":
-            return GPy.kern.ExpQuad(input_dim=self.input_dim,
-                                    variance=self.gp_kernel_var,
-                                    lengthscale=self.gp_kernel_scale)
-        elif self.gp_kernel_type == "matern32":
-            return GPy.kern.Matern32(input_dim=self.input_dim,
-                                     variance=self.gp_kernel_var,
-                                     lengthscale=self.gp_kernel_scale)
-        elif self.gp_kernel_type == "matern52":
-            return GPy.kern.Matern52(input_dim=self.input_dim,
-                                     variance=self.gp_kernel_var,
-                                     lengthscale=self.gp_kernel_scale)
-        else:
-            raise ValueError("Unknown GP kernel type: %s" % (self.gp_kernel_type))
+        """ Internal function to create a kernel for GPy model
+        Available at least: exponential, expquad, matern32, matern52
+        """
+
+        if isinstance(self.kernel_class, str):
+            self.kernel_class = getattr(GPy.kern, self.kernel_class)
+        # noinspection PyCallingNonCallable
+        return self.kernel_class(input_dim=self.input_dim,
+                                variance=self.kernel_var,
+                                lengthscale=self.kernel_lengthscale)
+
+    def _get_gp(self, X, Y):
+        GPy.models.GPRegression(X=X,
+                                Y=Y,
+                                kernel=self.kernel,
+                                noise_var=self.noise_var)
 
     def update(self, X, Y):
-        """
-            Add (X, Y) as observations, updates GP model.
-            X and Y should be 2d numpy arrays with observations in rows.
-        """
-        if not isinstance(X, np.ndarray) or not isinstance(Y, np.ndarray) or len(X.shape) != 2 or len(Y.shape) != 2:
-            raise ValueError("Observation arrays X and Y must be 2d numpy arrays (X type=%s, Y type=%s)" % (type(X), type(Y)))
-        if X.shape[0] != Y.shape[0]:
-            raise ValueError("Observation arrays X and Y must be of equal length (X len=%d, Y len=%d)" % (X.shape[0], Y.shape[0]))
-        if X.shape[1] != self.input_dim or Y.shape[1] != 1:
-            raise ValueError("Dimension of X (%d) must agree with model dimension (%d), dimension of Y (%d) must be 1." % (X.shape[1], self.input_dim, Y.shape[1]))
-        print("Observed: %s at %s" % (X, Y))
         if self.gp is None:
-            self.gp = GPy.models.GPRegression(X=X,
-                                              Y=Y,
-                                              kernel=self._get_kernel(),
-                                              noise_var=self.gp_noise_var)
+            self.gp = self._get_gp(X, Y)
         else:
             X = np.vstack((self.gp.X, X))
             Y = np.vstack((self.gp.Y, Y))

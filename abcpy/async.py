@@ -19,8 +19,4 @@ def wait(collections, client=None, return_when=FIRST_COMPLETED):
     del futures[i]
     res = f.result()
     del f
-<<<<<<< HEAD
     return res, i, futures
-=======
-    return res, i, futures
->>>>>>> Small modifications

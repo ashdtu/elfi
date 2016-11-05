@@ -136,16 +136,23 @@ class BolfiPosterior(Posterior):
     def _neg_logprior_density(self, x):
         return -1 * self._logprior_density(x)
 
-    def plot(self, norm=False):
-        if len(self.model.bounds) == 1:
-            mn = self.model.bounds[0][0]
-            mx = self.model.bounds[0][1]
-            dx = (mx - mn) / 200.0
-            x = np.arange(mn, mx, dx)
-            pd = np.zeros(len(x))
-            for i in range(len(x)):
-                pd[i] = self.pdf([x[i]], norm)
-            plt.figure()
-            plt.plot(x, pd)
-            plt.show()
+    # TODO: Generalize and put into elfi.visualization
+    def plot(self, norm=False, **kwargs):
+        switch = {0: plotting_error, 1: self._plot_1d, 2: self._plot_2d}
+        dim = len(self.model.bounds)
+        return switch.get(dim, plotting_error)(norm=norm, dim=dim, **kwargs)
 
+    def _plot_1d(self, norm, points=299, **kwargs):
+        lb, ub = self.model.bounds[0]
+        x = np.linspace(lb, ub, points)
+
+        # TODO: Vectorize pdf. self.pdf(x) should work for numbers and arrays
+        pd = np.array([self.pdf([i], norm) for i in x])
+        return plt.plot(x, pd)
+
+    def _plot_2d(self, **kwargs):
+        raise NotImplementedError
+
+
+def plotting_error(dim, **kwargs):
+    raise ValueError("Can not plot a posterior of {} dimensions.".format(dim))

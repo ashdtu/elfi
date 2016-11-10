@@ -3,6 +3,7 @@ from elfi.core import *
 from elfi.distributions import *
 from elfi.methods import *
 from .decorators import *
+from . import simulators
 
 __author__ = 'ELFI authors'
 __email__ = 'aki.vehtari@aalto.fi'

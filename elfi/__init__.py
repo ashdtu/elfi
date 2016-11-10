@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from elfi.core import *
-from elfi.distributions import *
-from elfi.methods import *
+from .core import *
 from .decorators import *
+from .distributions import *
+from .methods import *
+from .visualization import *
 from . import simulators
 
 __author__ = 'ELFI authors'

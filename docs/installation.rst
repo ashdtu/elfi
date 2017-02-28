@@ -9,7 +9,7 @@ To install ELFI, run this command in your terminal:
 .. code-block:: console
 
     pip install elfi  # On some platforms: pip3 install elfi
-    
+
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
 
@@ -62,13 +62,13 @@ You can either clone the public repository:
 
 .. code-block:: console
 
-    git clone https://github.com/HIIT/elfi.git
+    git clone https://github.com/elfi-dev/elfi.git
 
 Or download the `tarball`_:
 
 .. code-block:: console
 
-    curl  -OL https://github.com/HIIT/elfi/tarball/master
+    curl  -OL https://github.com/elfi-dev/elfi/tarball/master
 
 Once you have a copy of the source, you can install it with:
 
@@ -76,5 +76,5 @@ Once you have a copy of the source, you can install it with:
 
     python setup.py install
 
-.. _Github repo: https://github.com/HIIT/elfi
-.. _tarball: https://github.com/HIIT/elfi/tarball/master
+.. _Github repo: https://github.com/elfi-dev/elfi
+.. _tarball: https://github.com/elfi-dev/elfi/tarball/master

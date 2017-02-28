@@ -31,7 +31,7 @@ setup(
     keywords='abc likelihood-free statistics',
     packages=packages,
     version=__version__,
-    author='HIIT',
+    author='ELFI Authors',
     author_email='elfi-support@hiit.fi',
     url='http://elfi.readthedocs.io',
 

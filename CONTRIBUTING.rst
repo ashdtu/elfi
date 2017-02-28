@@ -15,7 +15,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/HIIT/elfi/issues.
+Report bugs at https://github.com/elfi-dev/elfi/issues.
 
 If you are reporting a bug, please include:
 
@@ -45,7 +45,7 @@ articles, and such.
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/HIIT/elfi/issues.
+The best way to send feedback is to file an issue at https://github.com/elfi-dev/elfi/issues.
 
 If you are proposing a feature:
 
@@ -76,7 +76,7 @@ Ready to contribute? Here's how to set up `ELFI` for local development.
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
-   
+
 5. Follow the `Style Guidelines`_
 
 6. When you're done making changes, check that your changes pass flake8 and the tests::
@@ -100,7 +100,7 @@ Style Guidelines
 ----------------
 
 The projects follows the `Khan Academy Style Guide <https://github.com/Khan/style-guides/blob/master/style/python.md>`_. Except that we use numpy style docstrings instead of Google style docstrings.
-   
+
 See `this example <http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html>`_ for how to format the docstrings.
 
 Additional Style Guidelines
@@ -108,7 +108,7 @@ Additional Style Guidelines
 
 - Use the ``.format()`` string method instead of the old percent operator. For more information see `PyFormat <https://pyformat.info/>`_.
 - Use the type hinting syntax suggested `here <https://www.jetbrains.com/help/pycharm/2016.1/type-hinting-in-pycharm.html>`_ in the docstrings.
-  
+
 Pull Request Guidelines
 -----------------------
 

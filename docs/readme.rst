@@ -17,12 +17,12 @@ Currently implemented ABC methods:
 
 .. _BOLFI: http://jmlr.csail.mit.edu/papers/v17/15-017.html
 
-GitHub page: https://github.com/HIIT/elfi
+GitHub page: https://github.com/elfi-dev/elfi
 
 See examples under the notebooks_ directory to get started. Limited user-support may be asked from elfi-support.at.hiit.fi, but the `Gitter chat`_ is preferable.
 
-.. _notebooks: https://github.com/HIIT/elfi/tree/master/notebooks
-.. _Gitter chat: https://gitter.im/HIIT/elfi?utm_source=share-link&utm_medium=link&utm_campaign=share-link
+.. _notebooks: https://github.com/elfi-dev/notebooks
+.. _Gitter chat: https://gitter.im/elfi-dev/elfi?utm_source=share-link&utm_medium=link&utm_campaign=share-link
 
 Licenses:
 

@@ -8,8 +8,8 @@ To install ELFI, run this command in your terminal:
 
 .. code-block:: console
 
-    pip install elfi
-
+    pip install elfi  # On some platforms: pip3 install elfi
+    
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
 
@@ -51,7 +51,7 @@ ELFI depends on several other Python packages, which have their own dependencies
 * If you receive an error about missing `numpy`, please install it first.
 * If you receive an error about `yaml.load`, install `pyyaml`.
 * On OS X with Anaconda virtual environment say `conda install python.app` and then use `pythonw` instead of `python`.
-* Note that ELFI currently supports Python 3.5 only, although 3.x may work as well.
+* Note that ELFI currently supports Python 3.5 only, although 3.x may work as well, so try `pip3 install elfi`.
 
 From sources
 ------------
